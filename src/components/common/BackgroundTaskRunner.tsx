@@ -4,17 +4,17 @@ import { useAccountStore } from '../../stores/useAccountStore';
 
 // ============================================================================
 // Smart Scheduled Refresh Strategy
-// - Critical time points: 08:00, 13:00, 18:00, 22:00
+// - Critical time points: 07:00, 11:00, 16:00, 21:00
 // - Within +/-5 minutes of each point: refresh every 1 minute (dense mode)
-// - 08:00-22:00 outside windows: no refresh (blocked mode)
-// - 22:00-08:00: normal interval refresh
+// - 07:00-21:00 outside windows: no refresh (blocked mode)
+// - 21:00-07:00: normal interval refresh
 // ============================================================================
 
 const CRITICAL_TIMES = [
-    { hour: 8, minute: 0 },
-    { hour: 13, minute: 0 },
-    { hour: 18, minute: 0 },
-    { hour: 22, minute: 0 },
+    { hour: 7, minute: 0 },
+    { hour: 11, minute: 0 },
+    { hour: 16, minute: 0 },
+    { hour: 21, minute: 0 },
 ];
 const WINDOW_MINUTES = 5;
 
@@ -33,12 +33,12 @@ function getRefreshMode(now: Date): RefreshMode {
         }
     }
 
-    // 08:00-22:00 outside windows -> blocked
-    if (h >= 8 && h < 22) {
+    // 07:00-21:00 outside windows -> blocked
+    if (h >= 7 && h < 21) {
         return 'blocked';
     }
 
-    // 22:00-08:00 -> normal interval
+    // 21:00-07:00 -> normal interval
     return 'normal';
 }
 
@@ -65,7 +65,7 @@ function BackgroundTaskRunner() {
             refreshAllQuotas();
             lastNormalRefreshRef.current = Date.now();
         } else if (mode === 'blocked') {
-            // Do nothing - refresh is blocked during 08:00-22:00 outside critical windows
+            // Do nothing - refresh is blocked during 07:00-21:00 outside critical windows
         } else {
             // Normal mode (22:00-08:00): respect refresh_interval
             const elapsed = (Date.now() - lastNormalRefreshRef.current) / 1000 / 60;
