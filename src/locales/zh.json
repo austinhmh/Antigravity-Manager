@@ -331,9 +331,9 @@
             "always_on": "始终开启",
             "refresh_interval": "刷新间隔（分钟）",
             "smart_refresh_title": "智能配额刷新策略已启用",
-            "smart_refresh_dense": "关键时间点 (08:00 / 13:00 / 18:00 / 22:00) 前后5分钟：每分钟自动刷新",
-            "smart_refresh_blocked": "08:00 - 22:00 其余时段：暂停自动刷新",
-            "smart_refresh_normal": "22:00 - 08:00：按上方设置的间隔正常刷新",
+            "smart_refresh_dense": "关键时间点 (07:00 / 11:00 / 16:00 / 21:00) 前后5分钟：每分钟自动刷新",
+            "smart_refresh_blocked": "07:00 - 21:00 其余时段：暂停自动刷新",
+            "smart_refresh_normal": "21:00 - 07:00：按上方设置的间隔正常刷新",
             "auto_sync": "自动获取当前账号",
             "auto_sync_desc": "定期自动刷新当前活动账号的信息",
             "sync_interval": "同步间隔（秒）"

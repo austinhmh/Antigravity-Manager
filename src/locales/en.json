@@ -334,9 +334,9 @@
             "always_on": "Always On",
             "refresh_interval": "Refresh Interval (minutes)",
             "smart_refresh_title": "Smart Quota Refresh Strategy Enabled",
-            "smart_refresh_dense": "Critical time points (08:00 / 13:00 / 18:00 / 22:00) +/-5 min: refresh every minute",
-            "smart_refresh_blocked": "08:00 - 22:00 other periods: auto-refresh paused",
-            "smart_refresh_normal": "22:00 - 08:00: normal interval refresh as configured above",
+            "smart_refresh_dense": "Critical time points (07:00 / 11:00 / 16:00 / 21:00) +/-5 min: refresh every minute",
+            "smart_refresh_blocked": "07:00 - 21:00 other periods: auto-refresh paused",
+            "smart_refresh_normal": "21:00 - 07:00: normal interval refresh as configured above",
             "auto_sync": "Auto Sync Current Account",
             "auto_sync_desc": "Automatically sync current active account information periodically",
             "sync_interval": "Sync Interval (seconds)"
