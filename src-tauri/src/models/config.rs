@@ -30,6 +30,8 @@ pub struct AppConfig {
     pub hidden_menu_items: Vec<String>, // Hidden menu item path list
     #[serde(default)]
     pub cloudflared: CloudflaredConfig, // [NEW] Cloudflared configuration
+    #[serde(default)]
+    pub scheduled_refresh: ScheduledRefreshConfig, // [NEW] Scheduled time-point quota refresh
 }
 
 /// Scheduled warmup configuration
@@ -163,6 +165,32 @@ impl CircuitBreakerConfig {
 }
 
 impl Default for CircuitBreakerConfig {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+/// Scheduled time-point quota refresh configuration
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ScheduledRefreshConfig {
+    /// Whether scheduled refresh is enabled
+    pub enabled: bool,
+
+    /// List of time points in "HH:MM" format, e.g. ["06:00", "12:00", "18:00"]
+    #[serde(default)]
+    pub times: Vec<String>,
+}
+
+impl ScheduledRefreshConfig {
+    pub fn new() -> Self {
+        Self {
+            enabled: false,
+            times: Vec::new(),
+        }
+    }
+}
+
+impl Default for ScheduledRefreshConfig {
     fn default() -> Self {
         Self::new()
     }
