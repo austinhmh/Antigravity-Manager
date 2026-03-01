@@ -8,6 +8,27 @@ edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
+[features]
+default = ["desktop"]
+desktop = [
+    "tauri",
+    "tauri/tray-icon",
+    "tauri/image-png",
+    "tauri-build",
+    "tauri-plugin-dialog",
+    "tauri-plugin-fs",
+    "tauri-plugin-opener",
+    "tauri-plugin-single-instance",
+    "tauri-plugin-autostart",
+    "tauri-plugin-updater",
+    "tauri-plugin-process",
+    "tauri-plugin-window-state",
+    "image",
+    "plist",
+    "gtk",
+]
+headless = []
+
 [lib]
 # The `_lib` suffix may seem redundant but it is necessary
 # to make the lib name unique and wouldn't conflict with the bin name.
@@ -16,11 +37,11 @@ name = "antigravity_tools_lib"
 crate-type = ["staticlib", "cdylib", "rlib"]
 
 [build-dependencies]
-tauri-build = { version = "^2.2.5", features = [] }
+tauri-build = { version = "^2.2.5", features = [], optional = true }
 
 [dependencies]
-tauri = { version = "^2.2.5", features = ["tray-icon", "image-png"] }
-tauri-plugin-opener = "2"
+tauri = { version = "^2.2.5", default-features = false, optional = true }
+tauri-plugin-opener = { version = "2", optional = true }
 serde = { version = "1", features = ["derive"] }
 serde_json = { version = "1", features = ["preserve_order"] }
 uuid = { version = "1.10", features = ["v4", "serde"] }
@@ -34,9 +55,9 @@ base64 = "0.22"
 sysinfo = "0.31"
 tokio = { version = "1", features = ["full"] }
 url = "2.5.7"
-tauri-plugin-dialog = "2.6.0"
-tauri-plugin-fs = "2.4.5"
-image = { version = "0.25.9", default-features = false, features = ["png", "webp"] }
+tauri-plugin-dialog = { version = "2.6.0", optional = true }
+tauri-plugin-fs = { version = "2.4.5", optional = true }
+image = { version = "0.25.9", default-features = false, features = ["png", "webp"], optional = true }
 thiserror = "2.0.17"
 
 # 反代服务依赖
@@ -57,28 +78,24 @@ regex = "1.12.2"                    # Duration 解析
 once_cell = "1.19"                  # 静态初始化 (模型映射表)
 pin-project = "1.1"                 # Pin 投影辅助
 bytes = "1.5"                       # SSE 字节操作
-tauri-plugin-single-instance = { version = "2.3.6", features = ["deep-link"] }
+tauri-plugin-single-instance = { version = "2.3.6", features = ["deep-link"], optional = true }
 libc = "0.2"
 tracing-appender = "0.2.4"
 tracing-log = "0.2.0"
-tauri-plugin-autostart = "2.5.1"
-tauri-plugin-updater = "2"
-tauri-plugin-process = "2"
+tauri-plugin-autostart = { version = "2.5.1", optional = true }
+tauri-plugin-updater = { version = "2", optional = true }
+tauri-plugin-process = { version = "2", optional = true }
 sha2 = "0.10"
 toml = "0.8"
 toml_edit = "0.22"
-tauri-plugin-window-state = "2"
+tauri-plugin-window-state = { version = "2", optional = true }
 parking_lot = "0.12.5"
 tokio-util = "0.7.18"
 aes-gcm = "0.10.3"
 machine-uid = "0.5.4"
-plist = "1.7"
+plist = { version = "1.7", optional = true }
 rquest = { version = "5.1.0", features = ["json", "stream", "socks", "cookies"] }
 rquest-util = "2.2.1"
 
 [target.'cfg(target_os = "linux")'.dependencies]
-gtk = "0.18"
-
-[features]
-default = ["custom-protocol"]
-custom-protocol = ["tauri/custom-protocol"]
+gtk = { version = "0.18", optional = true }

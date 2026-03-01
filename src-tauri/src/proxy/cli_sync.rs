@@ -485,7 +485,7 @@ pub fn sync_config(app: &CliApp, proxy_url: &str, api_key: &str, model: Option<&
 
 // Tauri Commands
 
-#[tauri::command]
+#[cfg_attr(feature = "desktop", tauri::command)]
 pub async fn get_cli_sync_status(app_type: CliApp, proxy_url: String) -> Result<CliStatus, String> {
     let (installed, version) = check_cli_installed(&app_type);
     let (is_synced, has_backup, current_base_url) = if installed {
@@ -504,12 +504,12 @@ pub async fn get_cli_sync_status(app_type: CliApp, proxy_url: String) -> Result<
     })
 }
 
-#[tauri::command]
+#[cfg_attr(feature = "desktop", tauri::command)]
 pub async fn execute_cli_sync(app_type: CliApp, proxy_url: String, api_key: String, model: Option<String>) -> Result<(), String> {
     sync_config(&app_type, &proxy_url, &api_key, model.as_deref())
 }
 
-#[tauri::command]
+#[cfg_attr(feature = "desktop", tauri::command)]
 pub async fn execute_cli_restore(app_type: CliApp) -> Result<(), String> {
     let files = app_type.config_files();
     let mut restored_count = 0;
@@ -537,7 +537,7 @@ pub async fn execute_cli_restore(app_type: CliApp) -> Result<(), String> {
     sync_config(&app_type, default_url, "", None)
 }
 
-#[tauri::command]
+#[cfg_attr(feature = "desktop", tauri::command)]
 pub async fn get_cli_config_content(app_type: CliApp, file_name: Option<String>) -> Result<String, String> {
     let files = app_type.config_files();
     let file = if let Some(name) = file_name {

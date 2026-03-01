@@ -28,6 +28,9 @@ pub mod sticky_config; // 粘性调度配置
 pub mod upstream; // 上游客户端
 pub mod zai_vision_mcp; // Built-in Vision MCP server state
 pub mod zai_vision_tools; // Built-in Vision MCP tools (z.ai vision API) // 调试日志
+pub mod service;
+
+pub use service::{ProxyServiceState, ProxyServiceInstance, AdminServerInstance, ProxyStatus, internal_start_proxy_service, ensure_admin_server};
 
 pub use config::update_global_system_prompt_config;
 pub use config::update_thinking_budget_config;

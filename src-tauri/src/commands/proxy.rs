@@ -3,6 +3,7 @@ use crate::proxy::{ProxyConfig, ProxyPoolConfig, TokenManager};
 use serde::{Deserialize, Serialize};
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
+#[cfg(feature = "desktop")]
 use tauri::State;
 use tokio::sync::RwLock;
 use tokio::time::Duration;
@@ -52,6 +53,7 @@ impl ProxyServiceState {
 }
 
 /// 启动反代服务 (Tauri 命令)
+#[cfg(feature = "desktop")]
 #[tauri::command]
 pub async fn start_proxy_service(
     config: ProxyConfig,
@@ -106,13 +108,22 @@ pub async fn internal_start_proxy_service(
     {
         let mut monitor_lock = state.monitor.write().await;
         if monitor_lock.is_none() {
-            let app_handle =
-                if let crate::modules::integration::SystemManager::Desktop(ref h) = integration {
-                    Some(h.clone())
-                } else {
-                    None
-                };
-            *monitor_lock = Some(Arc::new(ProxyMonitor::new(1000, app_handle)));
+            #[cfg(feature = "desktop")]
+            {
+                let app_handle =
+                    if let crate::modules::integration::SystemManager::Desktop(ref h) = integration
+                    {
+                        Some(h.clone())
+                    } else {
+                        None
+                    };
+                *monitor_lock = Some(Arc::new(ProxyMonitor::new(1000, app_handle)));
+            }
+            #[cfg(not(feature = "desktop"))]
+            {
+                let _ = &integration;
+                *monitor_lock = Some(Arc::new(ProxyMonitor::new(1000)));
+            }
         }
         // Sync enabled state from config
         if let Some(monitor) = monitor_lock.as_ref() {
@@ -223,13 +234,22 @@ pub async fn ensure_admin_server(
     let monitor = {
         let mut monitor_lock = state.monitor.write().await;
         if monitor_lock.is_none() {
-            let app_handle =
-                if let crate::modules::integration::SystemManager::Desktop(ref h) = integration {
-                    Some(h.clone())
-                } else {
-                    None
-                };
-            *monitor_lock = Some(Arc::new(ProxyMonitor::new(1000, app_handle)));
+            #[cfg(feature = "desktop")]
+            {
+                let app_handle =
+                    if let crate::modules::integration::SystemManager::Desktop(ref h) = integration
+                    {
+                        Some(h.clone())
+                    } else {
+                        None
+                    };
+                *monitor_lock = Some(Arc::new(ProxyMonitor::new(1000, app_handle)));
+            }
+            #[cfg(not(feature = "desktop"))]
+            {
+                let _ = &integration;
+                *monitor_lock = Some(Arc::new(ProxyMonitor::new(1000)));
+            }
         }
         monitor_lock.as_ref().unwrap().clone()
     };
@@ -279,6 +299,7 @@ pub async fn ensure_admin_server(
 }
 
 /// 停止反代服务
+#[cfg(feature = "desktop")]
 #[tauri::command]
 pub async fn stop_proxy_service(state: State<'_, ProxyServiceState>) -> Result<(), String> {
     let mut instance_lock = state.instance.write().await;
@@ -298,6 +319,7 @@ pub async fn stop_proxy_service(state: State<'_, ProxyServiceState>) -> Result<(
 }
 
 /// 获取反代服务状态
+#[cfg(feature = "desktop")]
 #[tauri::command]
 pub async fn get_proxy_status(state: State<'_, ProxyServiceState>) -> Result<ProxyStatus, String> {
     // 优先检查启动标志，避免被写锁阻塞
@@ -341,6 +363,7 @@ pub async fn get_proxy_status(state: State<'_, ProxyServiceState>) -> Result<Pro
 }
 
 /// 获取反代服务统计
+#[cfg(feature = "desktop")]
 #[tauri::command]
 pub async fn get_proxy_stats(state: State<'_, ProxyServiceState>) -> Result<ProxyStats, String> {
     let monitor_lock = state.monitor.read().await;
@@ -352,6 +375,7 @@ pub async fn get_proxy_stats(state: State<'_, ProxyServiceState>) -> Result<Prox
 }
 
 /// 获取反代请求日志
+#[cfg(feature = "desktop")]
 #[tauri::command]
 pub async fn get_proxy_logs(
     state: State<'_, ProxyServiceState>,
@@ -366,6 +390,7 @@ pub async fn get_proxy_logs(
 }
 
 /// 设置监控开启状态
+#[cfg(feature = "desktop")]
 #[tauri::command]
 pub async fn set_proxy_monitor_enabled(
     state: State<'_, ProxyServiceState>,
@@ -379,6 +404,7 @@ pub async fn set_proxy_monitor_enabled(
 }
 
 /// 清除反代请求日志
+#[cfg(feature = "desktop")]
 #[tauri::command]
 pub async fn clear_proxy_logs(state: State<'_, ProxyServiceState>) -> Result<(), String> {
     let monitor_lock = state.monitor.read().await;
@@ -389,7 +415,7 @@ pub async fn clear_proxy_logs(state: State<'_, ProxyServiceState>) -> Result<(),
 }
 
 /// 获取反代请求日志 (分页)
-#[tauri::command]
+#[cfg_attr(feature = "desktop", tauri::command)]
 pub async fn get_proxy_logs_paginated(
     limit: Option<usize>,
     offset: Option<usize>,
@@ -398,19 +424,19 @@ pub async fn get_proxy_logs_paginated(
 }
 
 /// 获取单条日志的完整详情
-#[tauri::command]
+#[cfg_attr(feature = "desktop", tauri::command)]
 pub async fn get_proxy_log_detail(log_id: String) -> Result<ProxyRequestLog, String> {
     crate::modules::proxy_db::get_log_detail(&log_id)
 }
 
 /// 获取日志总数
-#[tauri::command]
+#[cfg_attr(feature = "desktop", tauri::command)]
 pub async fn get_proxy_logs_count() -> Result<u64, String> {
     crate::modules::proxy_db::get_logs_count()
 }
 
 /// 导出所有日志到指定文件
-#[tauri::command]
+#[cfg_attr(feature = "desktop", tauri::command)]
 pub async fn export_proxy_logs(file_path: String) -> Result<usize, String> {
     let logs = crate::modules::proxy_db::get_all_logs_for_export()?;
     let count = logs.len();
@@ -424,7 +450,7 @@ pub async fn export_proxy_logs(file_path: String) -> Result<usize, String> {
 }
 
 /// 导出指定的日志JSON到文件
-#[tauri::command]
+#[cfg_attr(feature = "desktop", tauri::command)]
 pub async fn export_proxy_logs_json(file_path: String, json_data: String) -> Result<usize, String> {
     // Parse to count items
     let logs: Vec<serde_json::Value> =
@@ -441,7 +467,7 @@ pub async fn export_proxy_logs_json(file_path: String, json_data: String) -> Res
 }
 
 /// 获取带搜索条件的日志数量
-#[tauri::command]
+#[cfg_attr(feature = "desktop", tauri::command)]
 pub async fn get_proxy_logs_count_filtered(
     filter: String,
     errors_only: bool,
@@ -450,7 +476,7 @@ pub async fn get_proxy_logs_count_filtered(
 }
 
 /// 获取带搜索条件的分页日志
-#[tauri::command]
+#[cfg_attr(feature = "desktop", tauri::command)]
 pub async fn get_proxy_logs_filtered(
     filter: String,
     errors_only: bool,
@@ -461,12 +487,13 @@ pub async fn get_proxy_logs_filtered(
 }
 
 /// 生成 API Key
-#[tauri::command]
+#[cfg_attr(feature = "desktop", tauri::command)]
 pub fn generate_api_key() -> String {
     format!("sk-{}", uuid::Uuid::new_v4().simple())
 }
 
 /// 重新加载账号（当主应用添加/删除账号时调用）
+#[cfg(feature = "desktop")]
 #[tauri::command]
 pub async fn reload_proxy_accounts(state: State<'_, ProxyServiceState>) -> Result<usize, String> {
     let instance_lock = state.instance.read().await;
@@ -490,6 +517,7 @@ pub async fn reload_proxy_accounts(state: State<'_, ProxyServiceState>) -> Resul
 }
 
 /// 更新模型映射表 (热更新)
+#[cfg(feature = "desktop")]
 #[tauri::command]
 pub async fn update_model_mapping(
     config: ProxyConfig,
@@ -571,7 +599,7 @@ fn extract_model_ids(value: &serde_json::Value) -> Vec<String> {
 }
 
 /// Fetch available models from the configured z.ai Anthropic-compatible API (`/v1/models`).
-#[tauri::command]
+#[cfg_attr(feature = "desktop", tauri::command)]
 pub async fn fetch_zai_models(
     zai: crate::proxy::ZaiConfig,
     upstream_proxy: crate::proxy::config::UpstreamProxyConfig,
@@ -632,6 +660,7 @@ pub async fn fetch_zai_models(
 }
 
 /// 获取当前调度配置
+#[cfg(feature = "desktop")]
 #[tauri::command]
 pub async fn get_proxy_scheduling_config(
     state: State<'_, ProxyServiceState>,
@@ -645,6 +674,7 @@ pub async fn get_proxy_scheduling_config(
 }
 
 /// 更新调度配置
+#[cfg(feature = "desktop")]
 #[tauri::command]
 pub async fn update_proxy_scheduling_config(
     state: State<'_, ProxyServiceState>,
@@ -660,6 +690,7 @@ pub async fn update_proxy_scheduling_config(
 }
 
 /// 清除所有会话粘性绑定
+#[cfg(feature = "desktop")]
 #[tauri::command]
 pub async fn clear_proxy_session_bindings(
     state: State<'_, ProxyServiceState>,
@@ -677,6 +708,7 @@ pub async fn clear_proxy_session_bindings(
 
 /// 设置优先使用的账号（固定账号模式）
 /// 传入 account_id 启用固定模式，传入 null/空字符串恢复轮询模式
+#[cfg(feature = "desktop")]
 #[tauri::command]
 pub async fn set_preferred_account(
     state: State<'_, ProxyServiceState>,
@@ -716,6 +748,7 @@ pub async fn set_preferred_account(
 }
 
 /// 获取当前优先使用的账号ID
+#[cfg(feature = "desktop")]
 #[tauri::command]
 pub async fn get_preferred_account(
     state: State<'_, ProxyServiceState>,
@@ -729,6 +762,7 @@ pub async fn get_preferred_account(
 }
 
 /// 清除指定账号的限流记录
+#[cfg(feature = "desktop")]
 #[tauri::command]
 pub async fn clear_proxy_rate_limit(
     state: State<'_, ProxyServiceState>,
@@ -743,6 +777,7 @@ pub async fn clear_proxy_rate_limit(
 }
 
 /// 清除所有限流记录
+#[cfg(feature = "desktop")]
 #[tauri::command]
 pub async fn clear_all_proxy_rate_limits(
     state: State<'_, ProxyServiceState>,
@@ -757,6 +792,7 @@ pub async fn clear_all_proxy_rate_limits(
 }
 
 /// 触发所有代理的健康检查，并返回更新后的配置
+#[cfg(feature = "desktop")]
 #[tauri::command]
 pub async fn check_proxy_health(
     state: State<'_, ProxyServiceState>,
@@ -777,6 +813,7 @@ pub async fn check_proxy_health(
 }
 
 /// 获取当前内存中的代理池状态
+#[cfg(feature = "desktop")]
 #[tauri::command]
 pub async fn get_proxy_pool_config(
     state: State<'_, ProxyServiceState>,

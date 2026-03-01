@@ -7,6 +7,7 @@ pub mod process;
 pub mod oauth;
 pub mod oauth_server;
 pub mod migration;
+#[cfg(feature = "desktop")]
 pub mod tray;
 pub mod i18n;
 pub mod proxy_db;

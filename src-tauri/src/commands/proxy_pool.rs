@@ -1,8 +1,10 @@
+#[cfg(feature = "desktop")]
 use tauri::State;
 use crate::commands::proxy::ProxyServiceState;
 use std::collections::HashMap;
 
 /// Bind an account to a specific proxy
+#[cfg(feature = "desktop")]
 #[tauri::command]
 pub async fn bind_account_proxy(
     state: State<'_, ProxyServiceState>,
@@ -18,6 +20,7 @@ pub async fn bind_account_proxy(
 }
 
 /// Unbind an account from its proxy
+#[cfg(feature = "desktop")]
 #[tauri::command]
 pub async fn unbind_account_proxy(
     state: State<'_, ProxyServiceState>,
@@ -33,6 +36,7 @@ pub async fn unbind_account_proxy(
 }
 
 /// Get the proxy binding for a specific account
+#[cfg(feature = "desktop")]
 #[tauri::command]
 pub async fn get_account_proxy_binding(
     state: State<'_, ProxyServiceState>,
@@ -47,6 +51,7 @@ pub async fn get_account_proxy_binding(
 }
 
 /// Get all account proxy bindings
+#[cfg(feature = "desktop")]
 #[tauri::command]
 pub async fn get_all_account_bindings(
     state: State<'_, ProxyServiceState>,

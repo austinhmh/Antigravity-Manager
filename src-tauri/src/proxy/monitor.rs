@@ -1,6 +1,7 @@
 use serde::{Serialize, Deserialize};
 use std::collections::VecDeque;
 use tokio::sync::RwLock;
+#[cfg(feature = "desktop")]
 use tauri::Emitter;
 use std::sync::atomic::{AtomicBool, Ordering};
 
@@ -37,17 +38,16 @@ pub struct ProxyMonitor {
     pub stats: RwLock<ProxyStats>,
     pub max_logs: usize,
     pub enabled: AtomicBool,
+    #[cfg(feature = "desktop")]
     app_handle: Option<tauri::AppHandle>,
 }
 
 impl ProxyMonitor {
-    pub fn new(max_logs: usize, app_handle: Option<tauri::AppHandle>) -> Self {
-        // Initialize DB
+    fn init_common(max_logs: usize) -> Self {
         if let Err(e) = crate::modules::proxy_db::init_db() {
             tracing::error!("Failed to initialize proxy DB: {}", e);
         }
 
-        // Auto cleanup old logs (keep last 30 days)
         tokio::spawn(async {
             match crate::modules::proxy_db::cleanup_old_logs(30) {
                 Ok(deleted) => {
@@ -65,9 +65,22 @@ impl ProxyMonitor {
             logs: RwLock::new(VecDeque::with_capacity(max_logs)),
             stats: RwLock::new(ProxyStats::default()),
             max_logs,
-            enabled: AtomicBool::new(false), // Default to disabled
-            app_handle,
+            enabled: AtomicBool::new(false),
+            #[cfg(feature = "desktop")]
+            app_handle: None,
         }
+    }
+
+    #[cfg(feature = "desktop")]
+    pub fn new(max_logs: usize, app_handle: Option<tauri::AppHandle>) -> Self {
+        let mut s = Self::init_common(max_logs);
+        s.app_handle = app_handle;
+        s
+    }
+
+    #[cfg(not(feature = "desktop"))]
+    pub fn new(max_logs: usize) -> Self {
+        Self::init_common(max_logs)
     }
 
     pub fn set_enabled(&self, enabled: bool) {
@@ -160,6 +173,7 @@ impl ProxyMonitor {
         });
 
         // Emit event (send summary only, without body to reduce memory)
+        #[cfg(feature = "desktop")]
         if let Some(app) = &self.app_handle {
             let log_summary = ProxyRequestLog {
                 id: log.id.clone(),

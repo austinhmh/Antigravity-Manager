@@ -466,3 +466,26 @@ fn extract_tunnel_url(line: &str) -> Option<String> {
     None
 }
 
+/// Cloudflared服务状态管理
+#[derive(Clone)]
+pub struct CloudflaredState {
+    pub manager: Arc<RwLock<Option<CloudflaredManager>>>,
+}
+
+impl CloudflaredState {
+    pub fn new() -> Self {
+        Self {
+            manager: Arc::new(RwLock::new(None)),
+        }
+    }
+
+    /// 确保管理器已初始化
+    pub async fn ensure_manager(&self) -> Result<(), String> {
+        let mut lock = self.manager.write().await;
+        if lock.is_none() {
+            let data_dir = crate::modules::account::get_data_dir()?;
+            *lock = Some(CloudflaredManager::new(&data_dir));
+        }
+        Ok(())
+    }
+}

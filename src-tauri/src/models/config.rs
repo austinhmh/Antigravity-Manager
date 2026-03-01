@@ -216,6 +216,7 @@ impl AppConfig {
             circuit_breaker: CircuitBreakerConfig::default(),
             hidden_menu_items: Vec::new(),
             cloudflared: CloudflaredConfig::default(),
+            scheduled_refresh: ScheduledRefreshConfig::default(),
         }
     }
 }

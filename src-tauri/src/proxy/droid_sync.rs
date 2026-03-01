@@ -301,7 +301,7 @@ pub fn read_droid_config_content() -> Result<String, String> {
 
 // Tauri Commands
 
-#[tauri::command]
+#[cfg_attr(feature = "desktop", tauri::command)]
 pub async fn get_droid_sync_status(proxy_url: String) -> Result<DroidStatus, String> {
     let (installed, version) = check_droid_installed();
     let (is_synced, has_backup, current_base_url, synced_count) = if installed {
@@ -321,19 +321,19 @@ pub async fn get_droid_sync_status(proxy_url: String) -> Result<DroidStatus, Str
     })
 }
 
-#[tauri::command]
+#[cfg_attr(feature = "desktop", tauri::command)]
 pub async fn execute_droid_sync(
     custom_models: Vec<Value>,
 ) -> Result<usize, String> {
     sync_droid_config(custom_models)
 }
 
-#[tauri::command]
+#[cfg_attr(feature = "desktop", tauri::command)]
 pub async fn execute_droid_restore() -> Result<(), String> {
     restore_droid_config()
 }
 
-#[tauri::command]
+#[cfg_attr(feature = "desktop", tauri::command)]
 pub async fn get_droid_config_content() -> Result<String, String> {
     read_droid_config_content()
 }

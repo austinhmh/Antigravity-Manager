@@ -14,10 +14,12 @@ pub trait SystemIntegration: Send + Sync {
 }
 
 /// 桌面版实现：包含完整的进程控制和 UI 同步
+#[cfg(feature = "desktop")]
 pub struct DesktopIntegration {
     pub app_handle: tauri::AppHandle,
 }
 
+#[cfg(feature = "desktop")]
 impl SystemIntegration for DesktopIntegration {
     async fn on_account_switch(&self, account: &crate::models::Account) -> Result<(), String> {
         crate::modules::logger::log_info(&format!("[Desktop] Executing system switch for: {}", account.email));
@@ -91,6 +93,7 @@ impl SystemIntegration for HeadlessIntegration {
 /// 系统集成管理器：替代 Arc<dyn SystemIntegration> 以解决 async trait 的 dyn 兼容性问题
 #[derive(Clone)]
 pub enum SystemManager {
+    #[cfg(feature = "desktop")]
     Desktop(tauri::AppHandle),
     Headless,
 }
@@ -98,6 +101,7 @@ pub enum SystemManager {
 impl SystemManager {
     pub async fn on_account_switch(&self, account: &Account) -> Result<(), String> {
         match self {
+            #[cfg(feature = "desktop")]
             SystemManager::Desktop(handle) => {
                 let integration = DesktopIntegration { app_handle: handle.clone() };
                 integration.on_account_switch(account).await
@@ -110,6 +114,7 @@ impl SystemManager {
     }
 
     pub fn update_tray(&self) {
+        #[cfg(feature = "desktop")]
         if let SystemManager::Desktop(handle) = self {
             let integration = DesktopIntegration { app_handle: handle.clone() };
             integration.update_tray();
@@ -118,6 +123,7 @@ impl SystemManager {
 
     pub fn show_notification(&self, title: &str, body: &str) {
         match self {
+            #[cfg(feature = "desktop")]
             SystemManager::Desktop(handle) => {
                 let integration = DesktopIntegration { app_handle: handle.clone() };
                 integration.show_notification(title, body);
@@ -133,6 +139,7 @@ impl SystemManager {
 impl SystemIntegration for SystemManager {
     async fn on_account_switch(&self, account: &crate::models::Account) -> Result<(), String> {
         match self {
+            #[cfg(feature = "desktop")]
             SystemManager::Desktop(handle) => {
                 let integration = DesktopIntegration { app_handle: handle.clone() };
                 integration.on_account_switch(account).await
@@ -146,6 +153,7 @@ impl SystemIntegration for SystemManager {
 
     fn update_tray(&self) {
         match self {
+            #[cfg(feature = "desktop")]
             SystemManager::Desktop(handle) => {
                 let integration = DesktopIntegration { app_handle: handle.clone() };
                 integration.update_tray();
@@ -159,6 +167,7 @@ impl SystemIntegration for SystemManager {
 
     fn show_notification(&self, title: &str, body: &str) {
         match self {
+            #[cfg(feature = "desktop")]
             SystemManager::Desktop(handle) => {
                 let integration = DesktopIntegration { app_handle: handle.clone() };
                 integration.show_notification(title, body);

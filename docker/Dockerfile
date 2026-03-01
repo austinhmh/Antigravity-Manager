@@ -1,6 +1,10 @@
 # --- Frontend Build Stage ---
 FROM node:20-slim AS frontend-builder
 ARG USE_MIRROR=auto
+ARG http_proxy
+ARG https_proxy
+ENV http_proxy=${http_proxy}
+ENV https_proxy=${https_proxy}
 WORKDIR /app
 
 # Use npm mirror if needed
@@ -23,6 +27,10 @@ RUN npm run build
 # --- Backend Build Stage ---
 FROM rust:1-slim-bookworm AS backend-builder
 ARG USE_MIRROR=auto
+ARG http_proxy
+ARG https_proxy
+ENV http_proxy=${http_proxy}
+ENV https_proxy=${https_proxy}
 
 # Conditionally use Aliyun mirror for APT
 RUN if [ "$USE_MIRROR" = "true" ] || ( [ "$USE_MIRROR" = "auto" ] && ! timeout 3 bash -c "</dev/tcp/www.google.com/80" 2>/dev/null ); then \
@@ -33,26 +41,14 @@ RUN if [ "$USE_MIRROR" = "true" ] || ( [ "$USE_MIRROR" = "auto" ] && ! timeout 3
     echo "Using default APT sources..."; \
     fi
 
-# Install build dependencies
-RUN apt-get update && apt-get install -y \
+# Install build dependencies (headless: no GTK/WebKit needed)
+RUN apt-get update && apt-get install -y --no-install-recommends \
     pkg-config \
     build-essential \
     curl \
     wget \
     file \
     libssl-dev \
-    libgtk-3-dev \
-    libwebkit2gtk-4.1-dev \
-    libayatana-appindicator3-dev \
-    librsvg2-dev \
-    libsoup-3.0-dev \
-    libjavascriptcoregtk-4.1-dev \
-    perl \
-    cmake \
-    golang-go \
-    clang \
-    libclang-dev \
-    git \
     && rm -rf /var/lib/apt/lists/*
 
 # Use Aliyun mirror for Cargo if needed (Sparse Index)
@@ -78,12 +74,12 @@ COPY src/locales ./src/locales
 # Copy frontend dist from builder so Tauri can embed it
 COPY --from=frontend-builder /app/dist ./dist
 
-# Build the Rust backend in release mode (with BuildKit cache)
+# Build the Rust backend in release mode, headless (no GUI deps)
 WORKDIR /app/src-tauri
 RUN --mount=type=cache,target=/root/.cargo/registry \
     --mount=type=cache,target=/root/.cargo/git \
     --mount=type=cache,target=/app/src-tauri/target \
-    cargo build --release --bin antigravity_tools && \
+    cargo build --release --bin antigravity_tools --no-default-features --features headless && \
     cp target/release/antigravity_tools /tmp/antigravity_tools
 
 # --- Final Runtime Stage ---
@@ -100,15 +96,10 @@ RUN if [ "$USE_MIRROR" = "true" ] || ( [ "$USE_MIRROR" = "auto" ] && ! timeout 3
     echo "Using default APT sources..."; \
     fi
 
-# Install runtime dependencies
-RUN apt-get update && apt-get install -y \
+# Install runtime dependencies (headless: no GTK/WebKit needed)
+RUN apt-get update && apt-get install -y --no-install-recommends \
     libssl3 \
-    libsqlite3-0 \
     ca-certificates \
-    libgtk-3-0 \
-    libwebkit2gtk-4.1-0 \
-    libayatana-appindicator3-1 \
-    librsvg2-2 \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy binary from builder

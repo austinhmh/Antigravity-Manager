@@ -104,6 +104,7 @@ impl AccountService {
 
     pub async fn prepare_oauth_url(&self) -> Result<String, String> {
         let handle = match &self.integration {
+            #[cfg(feature = "desktop")]
             modules::integration::SystemManager::Desktop(h) => Some(h.clone()),
             modules::integration::SystemManager::Headless => None,
         };
@@ -112,6 +113,7 @@ impl AccountService {
 
     pub async fn start_oauth_login(&self) -> Result<Account, String> {
         let handle = match &self.integration {
+            #[cfg(feature = "desktop")]
             modules::integration::SystemManager::Desktop(h) => Some(h.clone()),
             modules::integration::SystemManager::Headless => None,
         };
@@ -121,6 +123,7 @@ impl AccountService {
 
     pub async fn complete_oauth_login(&self) -> Result<Account, String> {
         let handle = match &self.integration {
+            #[cfg(feature = "desktop")]
             modules::integration::SystemManager::Desktop(h) => Some(h.clone()),
             modules::integration::SystemManager::Headless => None,
         };

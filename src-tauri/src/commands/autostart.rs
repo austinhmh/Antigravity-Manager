@@ -1,6 +1,8 @@
 // Autostart 命令
+#[cfg(feature = "desktop")]
 use tauri_plugin_autostart::ManagerExt;
 
+#[cfg(feature = "desktop")]
 #[tauri::command]
 pub async fn toggle_auto_launch(
     app: tauri::AppHandle,
@@ -32,6 +34,7 @@ pub async fn toggle_auto_launch(
     Ok(())
 }
 
+#[cfg(feature = "desktop")]
 #[tauri::command]
 pub async fn is_auto_launch_enabled(app: tauri::AppHandle) -> Result<bool, String> {
     let manager = app.autolaunch();

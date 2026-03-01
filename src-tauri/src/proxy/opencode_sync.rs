@@ -1563,7 +1563,7 @@ pub fn read_opencode_config_content(file_name: Option<String>) -> Result<String,
         .map_err(|e| format!("Failed to read config: {}", e))
 }
 
-#[tauri::command]
+#[cfg_attr(feature = "desktop", tauri::command)]
 pub async fn get_opencode_sync_status(proxy_url: String) -> Result<OpencodeStatus, String> {
     let (installed, version) = check_opencode_installed();
     let (is_synced, has_backup, current_base_url) = get_sync_status(&proxy_url);
@@ -1582,7 +1582,7 @@ pub async fn get_opencode_sync_status(proxy_url: String) -> Result<OpencodeStatu
     })
 }
 
-#[tauri::command]
+#[cfg_attr(feature = "desktop", tauri::command)]
 pub async fn execute_opencode_sync(
     proxy_url: String,
     api_key: String,
@@ -1592,7 +1592,7 @@ pub async fn execute_opencode_sync(
     sync_opencode_config(&proxy_url, &api_key, sync_accounts.unwrap_or(false), models)
 }
 
-#[tauri::command]
+#[cfg_attr(feature = "desktop", tauri::command)]
 pub async fn execute_opencode_restore() -> Result<(), String> {
     restore_opencode_config()
 }
@@ -1603,7 +1603,7 @@ pub struct GetOpencodeConfigRequest {
     pub file_name: Option<String>,
 }
 
-#[tauri::command]
+#[cfg_attr(feature = "desktop", tauri::command)]
 pub async fn get_opencode_config_content(request: GetOpencodeConfigRequest) -> Result<String, String> {
     read_opencode_config_content(request.file_name)
 }

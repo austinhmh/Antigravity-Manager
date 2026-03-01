@@ -6,6 +6,7 @@ use serde::Serialize;
 use std::collections::VecDeque;
 use std::sync::atomic::{AtomicBool, AtomicU64, Ordering};
 use std::sync::{Arc, OnceLock};
+#[cfg(feature = "desktop")]
 use tauri::Emitter;
 use tracing::field::{Field, Visit};
 use tracing::{Event, Level, Subscriber};
@@ -22,6 +23,7 @@ static LOG_BRIDGE_ENABLED: AtomicBool = AtomicBool::new(false);
 static LOG_ID_COUNTER: AtomicU64 = AtomicU64::new(0);
 
 /// Global app handle for emitting events (set once during setup)
+#[cfg(feature = "desktop")]
 static APP_HANDLE: OnceLock<tauri::AppHandle> = OnceLock::new();
 
 /// Global log buffer for storing logs before UI connects
@@ -44,6 +46,7 @@ pub struct LogEntry {
 }
 
 /// Initialize the log bridge with app handle (call from setup)
+#[cfg(feature = "desktop")]
 pub fn init_log_bridge(app_handle: tauri::AppHandle) {
     let _ = APP_HANDLE.set(app_handle);
     tracing::debug!("[LogBridge] Initialized with app handle");
@@ -54,6 +57,7 @@ pub fn enable_log_bridge() {
     LOG_BRIDGE_ENABLED.store(true, Ordering::SeqCst);
 
     // Emit all buffered logs to frontend
+    #[cfg(feature = "desktop")]
     if let Some(handle) = APP_HANDLE.get() {
         let buffer = get_log_buffer().read();
         for entry in buffer.iter() {
@@ -211,6 +215,7 @@ where
         }
 
         // Emit to frontend
+        #[cfg(feature = "desktop")]
         if let Some(handle) = APP_HANDLE.get() {
             let _ = handle.emit("log-event", entry);
         }
@@ -221,26 +226,31 @@ where
 // Tauri Commands
 // ============================================================================
 
+#[cfg(feature = "desktop")]
 #[tauri::command]
 pub fn enable_debug_console() {
     enable_log_bridge();
 }
 
+#[cfg(feature = "desktop")]
 #[tauri::command]
 pub fn disable_debug_console() {
     disable_log_bridge();
 }
 
+#[cfg(feature = "desktop")]
 #[tauri::command]
 pub fn is_debug_console_enabled() -> bool {
     is_log_bridge_enabled()
 }
 
+#[cfg(feature = "desktop")]
 #[tauri::command]
 pub fn get_debug_console_logs() -> Vec<LogEntry> {
     get_buffered_logs()
 }
 
+#[cfg(feature = "desktop")]
 #[tauri::command]
 pub fn clear_debug_console_logs() {
     clear_log_buffer();

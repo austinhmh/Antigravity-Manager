@@ -6,6 +6,7 @@ mod proxy;  // Proxy service module
 pub mod error;
 pub mod constants;
 
+#[cfg(feature = "desktop")]
 use tauri::Manager;
 use modules::logger;
 use tracing::{info, warn, error};
@@ -99,13 +100,13 @@ fn increase_nofile_limit() {
     }
 }
 
-// Test command
+#[cfg(feature = "desktop")]
 #[tauri::command]
 fn greet(name: &str) -> String {
     format!("Hello, {}! You've been greeted from Rust!", name)
 }
 
-#[cfg_attr(mobile, tauri::mobile_entry_point)]
+#[cfg_attr(all(mobile, feature = "desktop"), tauri::mobile_entry_point)]
 pub fn run() {
     // Check for headless mode
     let args: Vec<String> = std::env::args().collect();
@@ -142,22 +143,8 @@ pub fn run() {
         let rt = tokio::runtime::Runtime::new().expect("Failed to create Tokio runtime");
         rt.block_on(async {
             // Initialize states manually
-            // [FIX] Initialize log bridge for headless mode
-            // Pass a dummy app handle or None since we don't have a Tauri app handle in headless mode
-            // Actually log_bridge relies on AppHandle to emit events.
-            // In headless mode, we don't emit events, but we still need the buffer.
-            // We need to modify log_bridge to handle missing AppHandle gracefully, which it already does (Option).
-            // But init_log_bridge requires AppHandle.
-            // We'll skip passing AppHandle for now and just leverage the global buffer capability.
-            // Since init_log_bridge takes AppHandle, we might need a separate init for headless or just not call init and rely on lazy init of buffer?
-            // Checking log_bridge code again...
-            // "static LOG_BUFFER: OnceLock<...> = OnceLock::new();" -> lazy init.
-            // So we just need to ensure the tracing layer is added.
-            // And `logger::init_logger()` adds the layer?
-            // Let's check `modules::logger`.
-
-            let proxy_state = commands::proxy::ProxyServiceState::new();
-            let cf_state = Arc::new(commands::cloudflared::CloudflaredState::new());
+            let proxy_state = proxy::ProxyServiceState::new();
+            let cf_state = Arc::new(modules::cloudflared::CloudflaredState::new());
 
             // Load config
             match modules::config::load_app_config() {
@@ -258,7 +245,7 @@ pub fn run() {
                     }
 
                     // Start proxy service
-                    if let Err(e) = commands::proxy::internal_start_proxy_service(
+                    if let Err(e) = proxy::internal_start_proxy_service(
                         config.proxy,
                         &proxy_state,
                         crate::modules::integration::SystemManager::Headless,
@@ -290,6 +277,7 @@ pub fn run() {
 
     let tray_enabled = should_enable_tray();
 
+    #[cfg(feature = "desktop")]
     tauri::Builder::default()
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_fs::init())
@@ -625,4 +613,7 @@ pub fn run() {
                 _ => {}
             }
         });
+
+    #[cfg(not(feature = "desktop"))]
+    {}
 }

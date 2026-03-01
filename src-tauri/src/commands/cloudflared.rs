@@ -1,33 +1,11 @@
+#[cfg(feature = "desktop")]
 use tauri::State;
-use crate::modules::cloudflared::{CloudflaredConfig, CloudflaredManager, CloudflaredStatus};
-use std::sync::Arc;
-use tokio::sync::RwLock;
+use crate::modules::cloudflared::{CloudflaredConfig, CloudflaredStatus};
 
-/// Cloudflared服务状态管理
-#[derive(Clone)]
-pub struct CloudflaredState {
-    pub manager: Arc<RwLock<Option<CloudflaredManager>>>,
-}
-
-impl CloudflaredState {
-    pub fn new() -> Self {
-        Self {
-            manager: Arc::new(RwLock::new(None)),
-        }
-    }
-
-    /// 确保管理器已初始化
-    pub async fn ensure_manager(&self) -> Result<(), String> {
-        let mut lock = self.manager.write().await;
-        if lock.is_none() {
-            let data_dir = crate::modules::account::get_data_dir()?;
-            *lock = Some(CloudflaredManager::new(&data_dir));
-        }
-        Ok(())
-    }
-}
+pub use crate::modules::cloudflared::CloudflaredState;
 
 /// 检查cloudflared是否已安装
+#[cfg(feature = "desktop")]
 #[tauri::command]
 pub async fn cloudflared_check(
     state: State<'_, CloudflaredState>,
@@ -50,6 +28,7 @@ pub async fn cloudflared_check(
 }
 
 /// 安装cloudflared
+#[cfg(feature = "desktop")]
 #[tauri::command]
 pub async fn cloudflared_install(
     state: State<'_, CloudflaredState>,
@@ -65,6 +44,7 @@ pub async fn cloudflared_install(
 }
 
 /// 启动cloudflared隧道
+#[cfg(feature = "desktop")]
 #[tauri::command]
 pub async fn cloudflared_start(
     state: State<'_, CloudflaredState>,
@@ -81,6 +61,7 @@ pub async fn cloudflared_start(
 }
 
 /// 停止cloudflared隧道
+#[cfg(feature = "desktop")]
 #[tauri::command]
 pub async fn cloudflared_stop(
     state: State<'_, CloudflaredState>,
@@ -96,6 +77,7 @@ pub async fn cloudflared_stop(
 }
 
 /// 获取cloudflared状态
+#[cfg(feature = "desktop")]
 #[tauri::command]
 pub async fn cloudflared_get_status(
     state: State<'_, CloudflaredState>,
