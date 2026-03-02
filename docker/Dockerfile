@@ -49,6 +49,12 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     wget \
     file \
     libssl-dev \
+    perl \
+    cmake \
+    golang-go \
+    clang \
+    libclang-dev \
+    git \
     && rm -rf /var/lib/apt/lists/*
 
 # Use Aliyun mirror for Cargo if needed (Sparse Index)

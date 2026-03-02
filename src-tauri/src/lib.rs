@@ -275,6 +275,7 @@ pub fn run() {
         return;
     }
 
+    #[cfg(feature = "desktop")]
     let tray_enabled = should_enable_tray();
 
     #[cfg(feature = "desktop")]

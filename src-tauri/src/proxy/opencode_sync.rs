@@ -1721,7 +1721,7 @@ fn cleanup_legacy_provider(provider: &mut Value, proxy_url: &str) {
     }
 }
 
-#[tauri::command]
+#[cfg_attr(feature = "desktop", tauri::command)]
 pub async fn execute_opencode_clear(
     proxy_url: Option<String>,
     clear_legacy: Option<bool>,

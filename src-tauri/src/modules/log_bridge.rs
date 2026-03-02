@@ -91,11 +91,17 @@ pub fn clear_log_buffer() {
 
 /// Emit accounts://refreshed event to notify the frontend of account state changes
 /// This is used by background tasks (e.g. warmup 403 handling) that cannot access AppHandle directly.
+#[cfg(feature = "desktop")]
 pub fn emit_accounts_refreshed() {
     if let Some(handle) = APP_HANDLE.get() {
         let _ = handle.emit("accounts://refreshed", ());
         tracing::debug!("[LogBridge] Emitted accounts://refreshed event to frontend");
     }
+}
+
+#[cfg(not(feature = "desktop"))]
+pub fn emit_accounts_refreshed() {
+    tracing::debug!("[LogBridge] Skipping accounts://refreshed event in headless mode");
 }
 
 /// Visitor to extract fields from tracing events
